@@ -12,6 +12,7 @@ A minimalist, responsive to-do application built with **Node.js** and modern van
 - **Filter by Status & Category**: Filter simultaneously by completion state (**All**, **Active**, **Completed**) and category.
 - **Complete Tasks**: Toggle completion with custom checkbox animations. Completed tasks are strikethrough-styled and updated live.
 - **Delete Tasks**: Remove tasks with the delete icon.
+- **Dark Mode Support**: One-click toggle between crisp light mode and deep slate dark mode. Remembers your preference in `localStorage` and respects system preferences automatically.
 - **Drag & Drop Reordering**: Drag any task using its handle to smoothly reorder tasks. Order is automatically saved to the backend.
 - **Persistent Storage**: Automatically saves all tasks to a local `todos.json` file.
 - **Zero External Dependencies**: Powered entirely by Node.js built-in standard libraries (`http`, `fs`, `path`).

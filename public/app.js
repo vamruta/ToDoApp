@@ -344,6 +344,33 @@ document.addEventListener('DOMContentLoaded', () => {
     return div.innerHTML;
   }
 
+  // Theme Toggle
+  const themeToggle = document.getElementById('theme-toggle');
+
+  function getActiveTheme() {
+    return document.documentElement.getAttribute('data-theme') || 'light';
+  }
+
+  function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('todo_theme', theme);
+  }
+
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const current = getActiveTheme();
+      const nextTheme = current === 'dark' ? 'light' : 'dark';
+      setTheme(nextTheme);
+    });
+  }
+
+  // Listen to OS theme changes if user hasn't explicitly set a preference
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    if (!localStorage.getItem('todo_theme')) {
+      document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+    }
+  });
+
   // Initial load
   fetchTodos();
 });
