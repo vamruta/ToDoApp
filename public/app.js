@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Fetch todos from server
   async function fetchTodos() {
     try {
-      const res = await fetch('/api/todos');
+      const res = await fetch(`/api/todos?_t=${Date.now()}`);
       if (!res.ok) throw new Error('Failed to load tasks');
       todos = await res.json();
       renderTodos();
@@ -370,6 +370,100 @@ document.addEventListener('DOMContentLoaded', () => {
       document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
     }
   });
+
+  // Settings & Backup Modal
+  const settingsBtn = document.getElementById('settings-btn');
+  const settingsModal = document.getElementById('settings-modal');
+  const closeModalBtn = document.getElementById('close-modal-btn');
+  const exportBackupBtn = document.getElementById('export-backup-btn');
+  const importTriggerBtn = document.getElementById('import-trigger-btn');
+  const importFileInput = document.getElementById('import-file-input');
+  const modalStatus = document.getElementById('modal-status');
+
+  function openSettings() {
+    if (modalStatus) {
+      modalStatus.style.display = 'none';
+      modalStatus.textContent = '';
+      modalStatus.className = 'modal-status';
+    }
+    settingsModal.style.display = 'flex';
+  }
+
+  function closeSettings() {
+    settingsModal.style.display = 'none';
+  }
+
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', openSettings);
+  }
+
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', closeSettings);
+  }
+
+  if (settingsModal) {
+    settingsModal.addEventListener('click', (e) => {
+      if (e.target === settingsModal) {
+        closeSettings();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && settingsModal.style.display === 'flex') {
+        closeSettings();
+      }
+    });
+  }
+
+  // Export Backup
+  if (exportBackupBtn) {
+    exportBackupBtn.addEventListener('click', () => {
+      window.location.href = '/api/backup/export';
+      showModalStatus('Backup downloaded successfully!', 'success');
+    });
+  }
+
+  // Import Backup
+  if (importTriggerBtn && importFileInput) {
+    importTriggerBtn.addEventListener('click', () => {
+      importFileInput.value = '';
+      importFileInput.click();
+    });
+
+    importFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+
+        const res = await fetch('/api/backup/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(parsed)
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Failed to import backup');
+        }
+
+        showModalStatus(data.message || 'Tasks successfully imported!', 'success');
+        fetchTodos();
+      } catch (err) {
+        console.error('Import error:', err);
+        showModalStatus(err.message || 'Invalid JSON backup file', 'error');
+      }
+    });
+  }
+
+  function showModalStatus(message, type) {
+    if (!modalStatus) return;
+    modalStatus.textContent = message;
+    modalStatus.className = `modal-status ${type}`;
+    modalStatus.style.display = 'block';
+  }
 
   // Initial load
   fetchTodos();

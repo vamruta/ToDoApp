@@ -14,6 +14,8 @@ A minimalist, responsive to-do application built with **Node.js** and modern van
 - **Delete Tasks**: Remove tasks with the delete icon.
 - **Dark Mode Support**: One-click toggle between crisp light mode and deep slate dark mode. Remembers your preference in `localStorage` and respects system preferences automatically.
 - **Drag & Drop Reordering**: Drag any task using its handle to smoothly reorder tasks. Order is automatically saved to the backend.
+- **JSON Backup & Restore**: Export your tasks as a downloadable `.json` file at any time, or restore tasks from an old backup via the in-app Settings modal.
+- **Standalone Windows Executable**: Bundled into a zero-dependency `todo-app.exe` binary. Double-click to launch the app and open your browser automatically.
 - **Persistent Storage**: Automatically saves all tasks to a local `todos.json` file.
 - **Zero External Dependencies**: Powered entirely by Node.js built-in standard libraries (`http`, `fs`, `path`).
 
@@ -21,7 +23,21 @@ A minimalist, responsive to-do application built with **Node.js** and modern van
 
 ## Getting Started
 
-### 1. Start the Server
+### Option A: Standalone Executable (.exe)
+Simply double-click:
+```
+todo-app.exe
+```
+This starts the local server and automatically opens your default browser to `http://localhost:3000`. No Node.js installation is required to run the `.exe`.
+
+To rebuild the executable at any time:
+```bash
+npm run build:exe
+```
+
+---
+
+### Option B: Run with Node.js
 Run the application with:
 
 ```bash
@@ -29,11 +45,7 @@ node server.js
 ```
 *(or `npm start`)*
 
-### 2. Open the App in Your Browser
-Visit:
-```
-http://localhost:3000
-```
+Then visit **http://localhost:3000** in your browser.
 
 ---
 
@@ -41,13 +53,14 @@ http://localhost:3000
 
 ```
 To_Do_App/
-├── package.json        # Project metadata and start script
+├── todo-app.exe        # Standalone Windows executable
+├── package.json        # Project metadata and build scripts
 ├── server.js          # Lightweight Node.js HTTP server & REST API
 ├── todos.json         # JSON storage for your tasks
 └── public/
-    ├── index.html     # Semantic, accessible UI structure
-    ├── style.css      # Clean, minimalist styling & responsive layout
-    └── app.js         # Client-side reactivity, API calls & state management
+    ├── index.html     # Semantic, accessible UI structure & modals
+    ├── style.css      # Clean styling, dark mode, animations & responsive layout
+    └── app.js         # Client-side reactivity, API calls, backup & restore
 ```
 
 ## API Endpoints
@@ -59,3 +72,5 @@ To_Do_App/
 | `PATCH` | `/api/todos/:id` | Update task fields (`{ "completed": true, "category": "...", "dueDate": "..." }`) |
 | `PUT` | `/api/todos/reorder` | Save new task ordering (`{ "ids": [...] }`) |
 | `DELETE` | `/api/todos/:id` | Delete a task by ID |
+| `GET` | `/api/backup/export` | Download a complete `todos-backup-[YYYY-MM-DD].json` file |
+| `POST` | `/api/backup/import` | Restore tasks from an uploaded JSON backup payload |

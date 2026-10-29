@@ -1,52 +1,26 @@
 [
   {
-    "id": "1793304931197",
-    "title": "Submit tax documents",
-    "category": "Personal",
-    "dueDate": "2026-10-25",
-    "completed": false,
-    "createdAt": "2026-10-29T20:15:31.197Z"
-  },
-  {
-    "id": "1793305245353",
-    "title": "add categories",
-    "category": "Personal",
+    "id": "1793308519661",
+    "title": "Persistence Check 1850811205",
+    "category": "Work",
     "dueDate": null,
-    "completed": true,
-    "createdAt": "2026-10-29T20:20:45.353Z"
-  },
-  {
-    "id": "1793304931137",
-    "title": "Review quarterly report",
-    "category": "Urgent",
-    "dueDate": "2026-11-05",
     "completed": false,
-    "createdAt": "2026-10-29T20:15:31.137Z"
+    "createdAt": "2026-10-29T21:15:19.661Z"
   },
   {
-    "id": "1793305120710",
-    "title": "take  meds",
+    "id": "b2",
+    "title": "Restored Task 2 (Personal)",
     "category": "Personal",
-    "dueDate": "2026-10-29",
+    "dueDate": "2026-11-05",
     "completed": true,
-    "createdAt": "2026-10-29T20:18:40.710Z"
+    "createdAt": "2026-10-29T20:53:31.118Z"
   },
   {
-    "id": "1793302071058",
-    "title": "Add a feature",
-    "completed": true,
-    "createdAt": "2026-10-29T19:27:51.058Z"
-  },
-  {
-    "id": "2",
-    "title": "Click the checkbox to mark as complete",
-    "completed": true,
-    "createdAt": "2026-10-29T19:20:39.062Z"
-  },
-  {
-    "id": "1",
-    "title": "Welcome to your To-Do list! 👋",
-    "completed": true,
-    "createdAt": "2026-10-29T19:20:39.061Z"
+    "id": "b1",
+    "title": "Restored Task 1 (Work)",
+    "category": "Work",
+    "dueDate": "2026-11-01",
+    "completed": false,
+    "createdAt": "2026-10-29T20:53:31.118Z"
   }
 ]
