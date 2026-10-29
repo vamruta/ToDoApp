@@ -190,17 +190,52 @@ body {
 .todo-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 10px;
+  padding: 10px 14px;
   background: #f8fafc;
   border: 1px solid #f1f5f9;
   border-radius: 10px;
-  transition: all 0.2s ease;
+  transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
 }
 
 .todo-item:hover {
   background: #f1f5f9;
   border-color: #e2e8f0;
+}
+
+.todo-item.dragging {
+  opacity: 0.45;
+  background-color: var(--primary-light);
+  border: 1.5px dashed var(--primary);
+  box-shadow: 0 8px 16px rgba(79, 70, 229, 0.12);
+  transform: scale(0.99);
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-subtle);
+  cursor: grab;
+  padding: 4px 2px;
+  border-radius: 4px;
+  opacity: 0.35;
+  transition: opacity 0.15s ease, color 0.15s ease;
+  touch-action: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.todo-item:hover .drag-handle {
+  opacity: 1;
+  color: var(--text-muted);
+}
+
+.drag-handle:hover {
+  color: var(--primary);
 }
 
 .todo-item.completed {

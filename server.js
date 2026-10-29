@@ -113,6 +113,37 @@ const server = http.createServer(async (req, res) => {
     return sendJsonResponse(res, 200, todos);
   }
 
+  // Reorder Todos
+  if (pathname === '/api/todos/reorder' && (method === 'PUT' || method === 'POST')) {
+    try {
+      const body = await parseJsonBody(req);
+      const orderedIds = body.ids;
+      if (!Array.isArray(orderedIds)) {
+        return sendJsonResponse(res, 400, { error: 'ids array is required' });
+      }
+
+      const todos = readTodos();
+      const todoMap = new Map(todos.map(t => [t.id, t]));
+      
+      const newTodos = [];
+      for (const id of orderedIds) {
+        if (todoMap.has(id)) {
+          newTodos.push(todoMap.get(id));
+          todoMap.delete(id);
+        }
+      }
+      // Preserve any items that weren't in the active view/reorder list
+      for (const remaining of todoMap.values()) {
+        newTodos.push(remaining);
+      }
+
+      saveTodos(newTodos);
+      return sendJsonResponse(res, 200, newTodos);
+    } catch (err) {
+      return sendJsonResponse(res, 400, { error: 'Invalid JSON body' });
+    }
+  }
+
   if (pathname === '/api/todos' && method === 'POST') {
     try {
       const body = await parseJsonBody(req);

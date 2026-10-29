@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let todos = [];
   let currentFilter = 'all';
+  let draggedItem = null;
 
   // Format today's date
   const options = { weekday: 'long', month: 'short', day: 'numeric' };
@@ -54,8 +55,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const li = document.createElement('li');
         li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
         li.dataset.id = todo.id;
+        li.setAttribute('draggable', 'true');
 
         li.innerHTML = `
+          <div class="drag-handle" title="Drag to reorder" aria-label="Drag to reorder">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="8" cy="6" r="2"></circle>
+              <circle cx="16" cy="6" r="2"></circle>
+              <circle cx="8" cy="12" r="2"></circle>
+              <circle cx="16" cy="12" r="2"></circle>
+              <circle cx="8" cy="18" r="2"></circle>
+              <circle cx="16" cy="18" r="2"></circle>
+            </svg>
+          </div>
           <label class="checkbox-container">
             <input type="checkbox" ${todo.completed ? 'checked' : ''} aria-label="Mark task complete">
             <span class="custom-checkbox">
@@ -82,6 +94,28 @@ document.addEventListener('DOMContentLoaded', () => {
         // Delete button
         const deleteBtn = li.querySelector('.delete-btn');
         deleteBtn.addEventListener('click', () => deleteTodo(todo.id));
+
+        // Drag events
+        li.addEventListener('dragstart', (e) => {
+          // Prevent drag when interacting with checkbox or delete button
+          if (e.target.closest('input') || e.target.closest('.delete-btn')) {
+            e.preventDefault();
+            return;
+          }
+          draggedItem = li;
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', todo.id);
+          setTimeout(() => li.classList.add('dragging'), 0);
+        });
+
+        li.addEventListener('dragend', () => {
+          li.classList.remove('dragging');
+          draggedItem = null;
+
+          // Collect new order and persist
+          const newIds = Array.from(todoList.querySelectorAll('.todo-item')).map(item => item.dataset.id);
+          syncAndSaveOrder(newIds);
+        });
 
         todoList.appendChild(li);
       });
@@ -149,6 +183,57 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error(err);
       todos = previousTodos;
       renderTodos();
+    }
+  }
+
+  // Drag & drop reordering on container
+  todoList.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const dragging = document.querySelector('.todo-item.dragging');
+    if (!dragging) return;
+
+    const afterElement = getDragAfterElement(todoList, e.clientY);
+    if (afterElement == null) {
+      todoList.appendChild(dragging);
+    } else {
+      todoList.insertBefore(dragging, afterElement);
+    }
+  });
+
+  function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('.todo-item:not(.dragging)')];
+
+    return draggableElements.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset) {
+        return { offset: offset, element: child };
+      } else {
+        return closest;
+      }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+  }
+
+  // Sync reordered items with state and server
+  async function syncAndSaveOrder(newIds) {
+    const idToIndex = new Map(newIds.map((id, index) => [id, index]));
+    todos.sort((a, b) => {
+      const idxA = idToIndex.has(a.id) ? idToIndex.get(a.id) : Infinity;
+      const idxB = idToIndex.has(b.id) ? idToIndex.get(b.id) : Infinity;
+      return idxA - idxB;
+    });
+
+    try {
+      const res = await fetch('/api/todos/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: newIds })
+      });
+      if (!res.ok) throw new Error('Failed to persist order');
+    } catch (err) {
+      console.error('Error saving reordered tasks:', err);
+      fetchTodos();
     }
   }
 

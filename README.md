@@ -9,6 +9,7 @@ A minimalist, responsive to-do application built with **Node.js** and modern van
 - **Add Tasks**: Type a task title and press <kbd>Enter</kbd> or click **Add**.
 - **Complete Tasks**: Toggle completion with custom checkbox animations. Completed tasks are strikethrough-styled and updated live.
 - **Delete Tasks**: Remove tasks with the delete icon.
+- **Drag & Drop Reordering**: Drag any task using its handle to smoothly reorder tasks. Order is automatically saved to the backend.
 - **Filters**: Quickly filter tasks by **All**, **Active**, and **Completed**.
 - **Persistent Storage**: Automatically saves all tasks to a local `todos.json` file.
 - **Zero External Dependencies**: Powered entirely by Node.js built-in standard libraries (`http`, `fs`, `path`).
@@ -53,4 +54,5 @@ To_Do_App/
 | `GET` | `/api/todos` | Retrieve all tasks |
 | `POST` | `/api/todos` | Add a new task (`{ "title": "..." }`) |
 | `PATCH` | `/api/todos/:id` | Update task (`{ "completed": true }`) |
+| `PUT` | `/api/todos/reorder` | Save new task ordering (`{ "ids": [...] }`) |
 | `DELETE` | `/api/todos/:id` | Delete a task by ID |
