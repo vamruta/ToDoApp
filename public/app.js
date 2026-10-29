@@ -2,20 +2,54 @@ document.addEventListener('DOMContentLoaded', () => {
   // Elements
   const todoForm = document.getElementById('todo-form');
   const todoInput = document.getElementById('todo-input');
+  const todoCategory = document.getElementById('todo-category');
+  const todoDueDate = document.getElementById('todo-due-date');
   const todoList = document.getElementById('todo-list');
   const filterButtons = document.querySelectorAll('.filter-btn');
+  const categoryFilter = document.getElementById('category-filter');
   const itemsLeftSpan = document.getElementById('items-left');
   const emptyState = document.getElementById('empty-state');
   const emptyStateText = document.getElementById('empty-state-text');
   const todayDateElement = document.getElementById('today-date');
 
   let todos = [];
-  let currentFilter = 'all';
+  let currentStatusFilter = 'all';
+  let currentCategoryFilter = 'all';
   let draggedItem = null;
 
-  // Format today's date
+  // Format today's date in header
   const options = { weekday: 'long', month: 'short', day: 'numeric' };
   todayDateElement.textContent = new Date().toLocaleDateString(undefined, options);
+
+  // Helper to format due date and status
+  function formatDueDate(dateString) {
+    if (!dateString) return null;
+    const parts = dateString.split('-');
+    if (parts.length !== 3) return null;
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    const target = new Date(year, month, day);
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const diffTime = target - today;
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const formattedShort = `${monthNames[month]} ${day}`;
+
+    if (diffDays < 0) {
+      return { text: `Overdue: ${formattedShort}`, status: 'due-overdue' };
+    } else if (diffDays === 0) {
+      return { text: 'Due Today', status: 'due-today' };
+    } else if (diffDays === 1) {
+      return { text: 'Due Tomorrow', status: 'due-upcoming' };
+    } else {
+      return { text: `Due: ${formattedShort}`, status: 'due-upcoming' };
+    }
+  }
 
   // Fetch todos from server
   async function fetchTodos() {
@@ -29,11 +63,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Render todos based on current filter
+  // Render todos based on current filters
   function renderTodos() {
     const filteredTodos = todos.filter(todo => {
-      if (currentFilter === 'active') return !todo.completed;
-      if (currentFilter === 'completed') return todo.completed;
+      // Status filter
+      if (currentStatusFilter === 'active' && todo.completed) return false;
+      if (currentStatusFilter === 'completed' && !todo.completed) return false;
+
+      // Category filter
+      if (currentCategoryFilter !== 'all') {
+        if (!todo.category || todo.category.toLowerCase() !== currentCategoryFilter.toLowerCase()) {
+          return false;
+        }
+      }
+
       return true;
     });
 
@@ -41,10 +84,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (filteredTodos.length === 0) {
       emptyState.style.display = 'flex';
-      if (currentFilter === 'completed') {
+      if (currentStatusFilter === 'completed') {
         emptyStateText.textContent = 'No completed tasks yet.';
-      } else if (currentFilter === 'active') {
+      } else if (currentStatusFilter === 'active') {
         emptyStateText.textContent = 'All caught up! No active tasks.';
+      } else if (currentCategoryFilter !== 'all') {
+        emptyStateText.textContent = `No tasks in "${currentCategoryFilter}".`;
       } else {
         emptyStateText.textContent = 'No tasks yet. Add one above!';
       }
@@ -56,6 +101,31 @@ document.addEventListener('DOMContentLoaded', () => {
         li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
         li.dataset.id = todo.id;
         li.setAttribute('draggable', 'true');
+
+        // Build metadata badges (Category & Due Date)
+        let metaHtml = '';
+        if (todo.category) {
+          const safeCat = escapeHtml(todo.category);
+          const catClass = `category-${todo.category.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+          metaHtml += `<span class="badge badge-category ${catClass}">${safeCat}</span>`;
+        }
+        if (todo.dueDate) {
+          const dueInfo = formatDueDate(todo.dueDate);
+          if (dueInfo) {
+            metaHtml += `
+              <span class="badge badge-date ${!todo.completed ? dueInfo.status : ''}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                ${escapeHtml(dueInfo.text)}
+              </span>`;
+          }
+        }
+
+        const metaContainerHtml = metaHtml ? `<div class="todo-meta">${metaHtml}</div>` : '';
 
         li.innerHTML = `
           <div class="drag-handle" title="Drag to reorder" aria-label="Drag to reorder">
@@ -76,7 +146,10 @@ document.addEventListener('DOMContentLoaded', () => {
               </svg>
             </span>
           </label>
-          <span class="todo-text">${escapeHtml(todo.title)}</span>
+          <div class="todo-content">
+            <span class="todo-text">${escapeHtml(todo.title)}</span>
+            ${metaContainerHtml}
+          </div>
           <button class="delete-btn" aria-label="Delete task">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="3 6 5 6 21 6"></polyline>
@@ -97,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Drag events
         li.addEventListener('dragstart', (e) => {
-          // Prevent drag when interacting with checkbox or delete button
           if (e.target.closest('input') || e.target.closest('.delete-btn')) {
             e.preventDefault();
             return;
@@ -112,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
           li.classList.remove('dragging');
           draggedItem = null;
 
-          // Collect new order and persist
           const newIds = Array.from(todoList.querySelectorAll('.todo-item')).map(item => item.dataset.id);
           syncAndSaveOrder(newIds);
         });
@@ -127,18 +198,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Add Todo
-  async function addTodo(title) {
+  async function addTodo(title, category, dueDate) {
     try {
       const res = await fetch('/api/todos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title })
+        body: JSON.stringify({ title, category, dueDate })
       });
       if (!res.ok) throw new Error('Failed to create task');
       const newTodo = await res.json();
       todos.unshift(newTodo);
       renderTodos();
       todoInput.value = '';
+      todoDueDate.value = '';
     } catch (err) {
       console.error(err);
       alert('Could not add task. Please check server connection.');
@@ -241,19 +313,28 @@ document.addEventListener('DOMContentLoaded', () => {
   todoForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const title = todoInput.value.trim();
+    const category = todoCategory.value || null;
+    const dueDate = todoDueDate.value || null;
+
     if (title) {
-      addTodo(title);
+      addTodo(title, category, dueDate);
     }
   });
 
-  // Filter click handlers
+  // Status Filter click handlers
   filterButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       filterButtons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      currentFilter = btn.dataset.filter;
+      currentStatusFilter = btn.dataset.status;
       renderTodos();
     });
+  });
+
+  // Category Filter handler
+  categoryFilter.addEventListener('change', () => {
+    currentCategoryFilter = categoryFilter.value;
+    renderTodos();
   });
 
   // Escape HTML helper
@@ -266,4 +347,3 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initial load
   fetchTodos();
 });
-

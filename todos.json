@@ -1,8 +1,40 @@
 [
   {
+    "id": "1793305245353",
+    "title": "add categories",
+    "category": "Personal",
+    "dueDate": null,
+    "completed": true,
+    "createdAt": "2026-10-29T20:20:45.353Z"
+  },
+  {
+    "id": "1793304931197",
+    "title": "Submit tax documents",
+    "category": "Personal",
+    "dueDate": "2026-10-25",
+    "completed": false,
+    "createdAt": "2026-10-29T20:15:31.197Z"
+  },
+  {
+    "id": "1793304931137",
+    "title": "Review quarterly report",
+    "category": "Urgent",
+    "dueDate": "2026-11-05",
+    "completed": false,
+    "createdAt": "2026-10-29T20:15:31.137Z"
+  },
+  {
+    "id": "1793305120710",
+    "title": "take  meds",
+    "category": "Personal",
+    "dueDate": "2026-10-29",
+    "completed": true,
+    "createdAt": "2026-10-29T20:18:40.710Z"
+  },
+  {
     "id": "1793302071058",
     "title": "Add a feature",
-    "completed": false,
+    "completed": true,
     "createdAt": "2026-10-29T19:27:51.058Z"
   },
   {

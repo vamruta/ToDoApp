@@ -154,9 +154,14 @@ const server = http.createServer(async (req, res) => {
       }
 
       const todos = readTodos();
+      const category = (typeof body.category === 'string' && body.category.trim()) ? body.category.trim() : null;
+      const dueDate = (typeof body.dueDate === 'string' && body.dueDate.trim()) ? body.dueDate.trim() : null;
+
       const newTodo = {
         id: Date.now().toString(),
         title,
+        category,
+        dueDate,
         completed: false,
         createdAt: new Date().toISOString()
       };
@@ -188,6 +193,12 @@ const server = http.createServer(async (req, res) => {
         }
         if (typeof body.title === 'string' && body.title.trim()) {
           todos[todoIndex].title = body.title.trim();
+        }
+        if (body.category !== undefined) {
+          todos[todoIndex].category = (typeof body.category === 'string' && body.category.trim()) ? body.category.trim() : null;
+        }
+        if (body.dueDate !== undefined) {
+          todos[todoIndex].dueDate = (typeof body.dueDate === 'string' && body.dueDate.trim()) ? body.dueDate.trim() : null;
         }
 
         saveTodos(todos);
